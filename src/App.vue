@@ -228,7 +228,8 @@ export default {
                 `gcm_token: ${credentials.gcm.token} ` +
                 `gcm_android_id: ${credentials.gcm.androidId} ` +
                 `gcm_security_token: ${credentials.gcm.securityToken} ` +
-                `gcm_app_id: ${credentials.gcm.appId}`;
+                `gcm_app_id: ${credentials.gcm.appId} ` +
+                `steam_id: ${this.steamId}`;
         },
 
         copySlashCommand() {
