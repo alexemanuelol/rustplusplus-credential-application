@@ -219,7 +219,7 @@ export default {
         formatSlashCommand(credentials) {
             if (!credentials) return false;
 
-            return '/credentials set ' +
+            return '/credentials add ' +
                 `keys_private_key: ${credentials.keys.privateKey} ` +
                 `keys_public_key: ${credentials.keys.publicKey} ` +
                 `keys_auth_secret: ${credentials.keys.authSecret} ` +
