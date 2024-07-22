@@ -24,7 +24,7 @@
         "json-bigint": "^1.0.0",
         "long": "^4.0.0",
         "postcss": "^8.4.14",
-        "push-receiver": "^2.1.1",
+        "push-receiver-v2": "^2.2.0",
         "tailwindcss": "npm:@tailwindcss/postcss7-compat@^2.0.4",
         "uuid": "^8.3.2",
         "vue": "^2.6.11",
