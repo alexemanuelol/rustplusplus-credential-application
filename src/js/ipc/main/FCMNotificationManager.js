@@ -1,4 +1,4 @@
-const PushReceiver = require('push-receiver');
+const PushReceiver = require('push-receiver-v2');
 
 /**
  * This class is responsible for registering a new android device with fcm
@@ -11,9 +11,15 @@ class FCMNotificationManager {
     constructor(ipcMain) {
         /* Global variables */
         this.ipcMain = ipcMain;
-
-        /* Register ipc channel handlers */
-        ipcMain.on('push-receiver.register', (event, data) => this.onRegister(event, data));
+        this.config = {
+            firebase: {
+                apiKey: 'AIzaSyB5y2y-Tzqb4-I4Qnlsh_9naYv_TD8pCvY',
+                appID: '1:976529667804:android:d6f1ddeb4403b338fea619',
+                projectID: 'rust-companion-app'
+            }
+        }
+        /* Register IPC channel handlers */
+        ipcMain.on('push-receiver.register', (event) => this.onRegister(event));
     }
 
     onRegisterSuccess(event, credentials) {
@@ -36,7 +42,7 @@ class FCMNotificationManager {
     async onRegister(event, data) {
         try {
             /* Register with gcm/fcm */
-            const credentials = await PushReceiver.register(data.senderId);
+            const credentials = await PushReceiver.register(this.config);
 
             /* Registering was successful */
             this.onRegisterSuccess(event, credentials);
