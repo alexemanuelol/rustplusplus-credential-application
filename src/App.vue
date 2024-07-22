@@ -1,51 +1,54 @@
 <template>
     <div id="app">
-        <!-- Steam is Connected -->
-        <template v-if="isRustPlusConnected">
-            <div class="min-h-screen bg-gray-200 py-6 flex flex-col justify-center sm:py-12">
-                <div class="sm:max-w-xl sm:mx-auto mb-4">
-                    <div class="px-4 py-10 bg-white shadow-lg sm:rounded-3xl sm:p-16">
-                        <div class="max-w-md mx-auto">
-
-                            <div class="flex mb-4">
-                                <img class="mx-auto" src="rustplusplus.png"/>
-                            </div>
-
-                            <div class="flex flex-col">
-                                <span class="mx-auto text-xl font-bold">rustPlusPlus - FCM Credential Application</span>
-                            </div>
-
-                            <div class="divide-y divide-gray-200">
-                                <div class="py-8 text-base leading-6 space-y-4 text-gray-700 sm:text-lg sm:leading-7">
-                                    <p>Copy the Slash Command from the text box and run it in a Discord Text Channel.</p>
-                                    <textarea ref="textareaCopy" v-on:focus="$event.target.select()" :value="slashCommand" readonly class="w-full h-64 inline-flex items-center border text-sm font-medium rounded-md shadow-sm"></textarea>
-                                </div>
-                            </div>
-
-                            <button @click="copySlashCommand" type="button" class="w-full inline-flex items-center px-3 py-2 border text-sm leading-4 font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none">
-                                <span class="flex mx-auto">
-                                    <span>Copy</span>
-                                </span>
-                            </button>
-
-                            <button @click="isShowingLogoutModal = true" type="button" class="w-full inline-flex items-center px-3 py-2 border text-sm leading-4 font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none">
-                                <span class="flex mx-auto">
-                                    <span>Logout</span>
-                                </span>
-                            </button>
-                        </div>
-                    </div>
+      <!-- Steam is Connected -->
+      <template v-if="isRustPlusConnected">
+        <div class="min-h-screen bg-gray-200 py-6 flex flex-col justify-center sm:py-12">
+          <div class="sm:max-w-xl sm:mx-auto mb-4">
+            <div class="px-4 py-10 bg-white shadow-lg sm:rounded-3xl sm:p-16">
+              <div class="max-w-md mx-auto">
+                <div class="flex mb-4">
+                  <img class="mx-auto" src="rustplusplus.png" />
                 </div>
+                <div class="flex flex-col">
+                  <span class="mx-auto text-xl font-bold">rustPlusPlus - FCM Credential Application</span>
+                </div>
+                <div class="divide-y divide-gray-200">
+                  <div class="py-8 text-base leading-6 space-y-4 text-gray-700 sm:text-lg sm:leading-7">
+                    <p>Copy the Slash Command from the text box and run it in a Discord Text Channel.</p>
+                    <div class="relative w-full h-64">
+                      <textarea v-if="!isLoading" ref="textareaCopy" v-on:focus="$event.target.select()" :value="slashCommand" readonly class="w-full h-full inline-flex items-center border text-sm font-medium rounded-md shadow-sm"></textarea>
+                      <div v-else class="w-full h-full flex items-center justify-center">
+                        <svg class="animate-spin h-10 w-10 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <button @click="copySlashCommand" type="button" class="w-full inline-flex items-center px-3 py-2 border text-sm leading-4 font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none">
+                  <span class="flex mx-auto">
+                    <span>Copy</span>
+                  </span>
+                </button>
+                <button @click="isShowingLogoutModal = true" type="button" class="w-full inline-flex items-center px-3 py-2 border text-sm leading-4 font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none">
+                  <span class="flex mx-auto">
+                    <span>Logout</span>
+                  </span>
+                </button>
+              </div>
             </div>
-        </template>
-
-        <!-- Steam not Connected -->
-        <ConnectRustPlus v-else @rustplus-connected="onRustPlusConnected($event)"/>
-
-        <!-- Modals -->
-        <LogoutModal @close="isShowingLogoutModal = false" @logout="logout" :isShowing="isShowingLogoutModal"/>
-  </div>
-</template>
+          </div>
+        </div>
+      </template>
+  
+      <!-- Steam not Connected -->
+      <ConnectRustPlus v-else @rustplus-connected="onRustPlusConnected($event)" />
+  
+      <!-- Modals -->
+      <LogoutModal @close="isShowingLogoutModal = false" @logout="logout" :isShowing="isShowingLogoutModal" />
+    </div>
+  </template>
 
 <script>
 import LogoutModal from "@/components/modals/LogoutModal";
@@ -71,6 +74,7 @@ export default {
             rustCompanionReceiver: null,
 
             isShowingLogoutModal: false,
+            isLoading: false,
         };
     },
     computed: {
@@ -113,10 +117,13 @@ export default {
 
             /* Configure expo data */
             this.setupExpo();
+
+            this.isLoading = false;
         },
 
         onFCMRegisterError(data) {
             /* Do nothing */
+            this.isLoading = false;
         },
 
         onExpoRegisterSuccess(data) {
@@ -170,10 +177,12 @@ export default {
 
                 /* Configure expo data */
                 this.setupExpo();
-            }
-            else {
+
+                this.isLoading = false;
+            } else {
                 /* Register for a new set of fcm credentials */
-                this.fcmNotificationReceiver.register('976529667804');
+                this.isLoading = true;
+                this.fcmNotificationReceiver.register();
             }
         },
 
@@ -220,16 +229,19 @@ export default {
             if (!credentials) return false;
 
             return '/credentials add ' +
-                `keys_private_key: ${credentials.keys.privateKey} ` +
-                `keys_public_key: ${credentials.keys.publicKey} ` +
-                `keys_auth_secret: ${credentials.keys.authSecret} ` +
-                `fcm_token: ${credentials.fcm.token} ` +
-                `fcm_push_set: ${credentials.fcm.pushSet} ` +
-                `gcm_token: ${credentials.gcm.token} ` +
-                `gcm_android_id: ${credentials.gcm.androidId} ` +
-                `gcm_security_token: ${credentials.gcm.securityToken} ` +
-                `gcm_app_id: ${credentials.gcm.appId} ` +
-                `steam_id: ${this.steamId}`;
+                `keys_private_key:${credentials.keys.privateKey} ` +
+                `keys_public_key:${credentials.keys.publicKey} ` +
+                `keys_auth_secret:${credentials.keys.authSecret} ` +
+                `fcm_name:${credentials.fcm.name} ` +
+                `fcm_token:${credentials.fcm.token} ` +
+                `fcm_web_endpoint:${credentials.fcm.web.endpoint} ` +
+                `fcm_web_p256dh:${credentials.fcm.web.p256dh} ` +
+                `fcm_web_auth:${credentials.fcm.web.auth} ` +
+                `gcm_token:${credentials.gcm.token} ` +
+                `gcm_android_id:${credentials.gcm.androidId} ` +
+                `gcm_security_token:${credentials.gcm.securityToken} ` +
+                `gcm_app_id:${credentials.gcm.appId} ` +
+                `steam_id:${this.steamId} `;
         },
 
         copySlashCommand() {
@@ -239,3 +251,15 @@ export default {
     }
 }
 </script>
+
+<style>
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+</style>
