@@ -11,6 +11,10 @@ class FCMNotificationManager {
     constructor(ipcMain) {
         /* Global variables */
         this.ipcMain = ipcMain;
+        /**
+         * Firebase configuration used to register the device with FCM.
+         * This configuration includes the API key, app ID, and project ID.
+         */
         this.config = {
             firebase: {
                 apiKey: 'AIzaSyB5y2y-Tzqb4-I4Qnlsh_9naYv_TD8pCvY',
