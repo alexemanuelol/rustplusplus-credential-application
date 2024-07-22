@@ -14,7 +14,7 @@ module.exports = {
                 },
             },
             externals: [
-                'push-receiver',
+                'push-receiver-v2',
             ],
         },
     },
