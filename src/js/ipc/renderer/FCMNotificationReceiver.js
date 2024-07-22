@@ -28,17 +28,20 @@ class FCMNotificationReceiver extends Events.EventEmitter {
     }
 
     /**
-     * Ask the main process to register a new android device
-     * to receive fcm notifications for the provided senderId.
+     * Ask the main process to register a new Android device
+     * to receive FCM notifications using the provided Firebase configuration.
+     *
+     * This function sends an 'push-receiver.register' event to the main process.
+     *
+     * The main process should handle this event and use the Firebase configuration
+     * to register the device for FCM notifications.
      *
      * Events Emitted:
-     * - register.success
-     * - register.error
+     * - 'push-receiver.register.success': Emitted by the main process when registration is successful.
+     * - 'push-receiver.register.error': Emitted by the main process when registration fails.
      */
-    register(senderId) {
-        ipcRenderer.send('push-receiver.register', {
-            senderId: senderId,
-        });
+    register() {
+        ipcRenderer.send('push-receiver.register');
     }
 }
 
