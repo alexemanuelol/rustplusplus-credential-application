@@ -20,6 +20,7 @@
         "autoprefixer": "^9",
         "axios": "^0.21.4",
         "core-js": "^3.24.1",
+        "dotenv": "^16.4.5",
         "electron-store": "^7.0.3",
         "json-bigint": "^1.0.0",
         "long": "^4.0.0",

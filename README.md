@@ -25,6 +25,12 @@ Download and Install Dependencies
 
     $ npm install
 
+Setup Firebase configuration by creating a .env file and include the following with values
+
+    FIREBASE_API_KEY=
+    FIREBASE_APP_ID=
+    FIREBASE_PROJECT_ID=
+
 Run Electron app for Development
 
     $ npm run electron:serve

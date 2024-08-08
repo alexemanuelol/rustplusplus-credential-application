@@ -1,4 +1,5 @@
 const PushReceiver = require('push-receiver-v2');
+require('dotenv').config();
 
 /**
  * This class is responsible for registering a new android device with fcm
@@ -17,9 +18,9 @@ class FCMNotificationManager {
          */
         this.config = {
             firebase: {
-                apiKey: 'AIzaSyB5y2y-Tzqb4-I4Qnlsh_9naYv_TD8pCvY',
-                appID: '1:976529667804:android:d6f1ddeb4403b338fea619',
-                projectID: 'rust-companion-app'
+                apiKey: process.env.FIREBASE_API_KEY,
+                appID: process.env.FIREBASE_APP_ID,
+                projectID: process.env.FIREBASE_PROJECT_ID
             }
         }
         /* Register IPC channel handlers */
