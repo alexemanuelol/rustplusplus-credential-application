@@ -4,6 +4,8 @@ const { v4: uuidv4 } = require('uuid');
 const KEY_STEAM_ID = 'steam_id';
 const KEY_RUSTPLUS_TOKEN = 'rustplus_token';
 const KEY_EXPO_DEVICE_ID = 'expo_device_id';
+const KEY_EXPIRE_DATE = 'expire_date';
+const KEY_ISSUED_DATE = 'issued_date';
 
 class ConfigDataStore {
     static getSteamId() {
@@ -48,6 +50,30 @@ class ConfigDataStore {
 
     static clearExpoDeviceId() {
         ElectronStore.delete(KEY_EXPO_DEVICE_ID);
+    }
+
+    static getExpireDate() {
+        return ElectronStore.get(KEY_EXPIRE_DATE);
+    }
+
+    static setExpireDate(expireDate) {
+        return ElectronStore.set(KEY_EXPIRE_DATE, expireDate);
+    }
+
+    static clearExpireDate() {
+        return ElectronStore.delete(KEY_EXPIRE_DATE);
+    }
+
+    static getIssuedDate() {
+        return ElectronStore.get(KEY_ISSUED_DATE);
+    }
+
+    static setIssuedDate(issuedDate) {
+        return ElectronStore.set(KEY_ISSUED_DATE, issuedDate);
+    }
+
+    static clearIssuedDate() {
+        return ElectronStore.delete(KEY_ISSUED_DATE);
     }
 }
 
