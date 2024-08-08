@@ -3,9 +3,9 @@ module.exports = {
         electronBuilder: {
             preload: 'src/preload.js',
             builderOptions: {
-                productName: "rustPlusPlus FCM Credential Application",
-                appId: 'com.alexemanuelol.electron.rustplusplus.fcmcredentialapp',
-                artifactName: 'rustPlusPlus-${version}-${os}-${arch}.${ext}',
+                productName: "rustplusplus credential application",
+                appId: 'com.alexemanuelol.electron.rustplusplus.credential.app',
+                artifactName: 'rustplusplus-${version}-${os}-${arch}.${ext}',
                 "mac": {
                     "icon": "./public/icon_rounded.png",
                 },

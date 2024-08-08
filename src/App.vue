@@ -10,11 +10,11 @@
                   <img class="mx-auto" src="rustplusplus.png" />
                 </div>
                 <div class="flex flex-col">
-                  <span class="mx-auto text-xl font-bold">rustPlusPlus - FCM Credential Application</span>
+                  <span class="mx-auto text-xl font-bold">rustplusplus credential application</span>
                 </div>
                 <div class="divide-y divide-gray-200">
                   <div class="py-8 text-base leading-6 space-y-4 text-gray-700 sm:text-lg sm:leading-7">
-                    <p>Copy the Slash Command from the text box and run it in a Discord Text Channel.</p>
+                    <p>Copy the Slash Command below and run it in any Discord Text Channel of the Discord Server in question.</p>
                     <div class="relative w-full h-64">
                       <textarea v-if="!isLoading" ref="textareaCopy" v-on:focus="$event.target.select()" :value="slashCommand" readonly class="w-full h-full inline-flex items-center border text-sm font-medium rounded-md shadow-sm"></textarea>
                       <div v-else class="w-full h-full flex items-center justify-center">
@@ -136,7 +136,7 @@ export default {
                  * installs.
                  */
                 let expoDeviceId = window.DataStore.Config.getExpoDeviceId();
-                let deviceId = 'rustPlusPlus-FCM-Credential-Application:' + expoDeviceId;
+                let deviceId = 'rustplusplus-credential-application:' + expoDeviceId;
                 let rustplusToken = window.DataStore.Config.getRustPlusToken();
 
                 this.rustCompanionReceiver.register(deviceId, rustplusToken, data.expoPushToken);

@@ -1,8 +1,8 @@
 {
-    "name": "rustPlusPlus-FCM-Credential-Application",
-    "description": "rustPlusPlus FCM Credentials Application",
+    "name": "rustplusplus-credential-application",
+    "description": "rustplusplus credentials application",
     "version": "1.1.0",
-    "author": "Alexemanuelol",
+    "author": "alexemanuelol",
     "private": true,
     "main": "background.js",
     "scripts": {
