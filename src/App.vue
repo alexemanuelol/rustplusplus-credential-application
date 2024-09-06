@@ -83,6 +83,7 @@
 
                 expireDate: null,
                 issuedDate: null,
+                authToken: null,
 
                 fcmNotificationReceiver: null,
                 expoPushTokenReceiver: null,
@@ -104,6 +105,7 @@
             this.rustplusToken = window.DataStore.Config.getRustPlusToken();
             this.expireDate = window.DataStore.Config.getExpireDate();
             this.issuedDate = window.DataStore.Config.getIssuedDate();
+            this.authToken = window.DataStore.Config.getAuthToken();
 
             /* Setup fcm, expo and rust companion receivers */
             this.fcmNotificationReceiver = new window.FCMNotificationReceiver(window.ipcRenderer);
@@ -166,20 +168,26 @@
             },
 
             onRustCompanionRegisterSuccess(data) {
+                window.DataStore.Config.setAuthToken(data.authToken);
+                this.authToken = data.authToken;
+
                 if (this.saveNextData) {
                     const decoded = jwtDecode(data.token, { header: true });
 
                     window.DataStore.Config.setIssuedDate(decoded.iss);
                     window.DataStore.Config.setExpireDate(decoded.exp);
+                    window.DataStore.Config.setAuthToken(data.authToken);
 
                     this.issuedDate = decoded.iss;
                     this.expireDate = decoded.exp;
+                    this.authToken = data.authToken;
 
                     this.saveNextData = false;
                 }
                 else {
                     this.issuedDate = window.DataStore.Config.getIssuedDate();
                     this.expireDate = window.DataStore.Config.getExpireDate();
+                    this.authToken = window.DataStore.Config.getAuthToken();
                 }
 
                 let credentials = window.DataStore.FCM.getCredentials();
@@ -245,6 +253,7 @@
                 this.rustplusToken = null;
                 this.expireDate = null;
                 this.issuedDate = null;
+                this.authToken = null;
 
                 /* Clear FCM Credentials */
                 window.DataStore.FCM.clearCredentials();
@@ -269,23 +278,30 @@
 
                 const issuedDate = window.DataStore.Config.getIssuedDate();
                 const expireDate = window.DataStore.Config.getExpireDate();
+                const authToken = window.DataStore.Config.getAuthToken();
 
-                return '/credentials add ' +
-                    `keys_private_key:${credentials.keys.privateKey} ` +
-                    `keys_public_key:${credentials.keys.publicKey} ` +
-                    `keys_auth_secret:${credentials.keys.authSecret} ` +
-                    `fcm_name:${credentials.fcm.name} ` +
-                    `fcm_token:${credentials.fcm.token} ` +
-                    `fcm_web_endpoint:${credentials.fcm.web.endpoint} ` +
-                    `fcm_web_p256dh:${credentials.fcm.web.p256dh} ` +
-                    `fcm_web_auth:${credentials.fcm.web.auth} ` +
-                    `gcm_token:${credentials.gcm.token} ` +
-                    `gcm_android_id:${credentials.gcm.androidId} ` +
-                    `gcm_security_token:${credentials.gcm.securityToken} ` +
-                    `gcm_app_id:${credentials.gcm.appId} ` +
+                return '/authtoken add ' +
+                    `token:${authToken} ` +
                     `steam_id:${this.steamId} ` +
                     `issued_date:${issuedDate} ` +
                     `expire_date:${expireDate}`;
+
+                //return '/credentials add ' +
+                //    `keys_private_key:${credentials.keys.privateKey} ` +
+                //    `keys_public_key:${credentials.keys.publicKey} ` +
+                //    `keys_auth_secret:${credentials.keys.authSecret} ` +
+                //    `fcm_name:${credentials.fcm.name} ` +
+                //    `fcm_token:${credentials.fcm.token} ` +
+                //    `fcm_web_endpoint:${credentials.fcm.web.endpoint} ` +
+                //    `fcm_web_p256dh:${credentials.fcm.web.p256dh} ` +
+                //    `fcm_web_auth:${credentials.fcm.web.auth} ` +
+                //    `gcm_token:${credentials.gcm.token} ` +
+                //    `gcm_android_id:${credentials.gcm.androidId} ` +
+                //    `gcm_security_token:${credentials.gcm.securityToken} ` +
+                //    `gcm_app_id:${credentials.gcm.appId} ` +
+                //    `steam_id:${this.steamId} ` +
+                //    `issued_date:${issuedDate} ` +
+                //    `expire_date:${expireDate}`;
             },
 
             copySlashCommand() {

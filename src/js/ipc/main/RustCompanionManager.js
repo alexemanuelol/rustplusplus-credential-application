@@ -15,9 +15,10 @@ class RustCompanionManager {
         ipcMain.on('rust-companion-api.register', (event, data) => this.onRegister(event, data));
     }
 
-    onRegisterSuccess(event, jwtToken) {
+    onRegisterSuccess(event, jwtToken, authToken) {
         event.sender.send('rust-companion-api.register.success', {
-            'token': jwtToken
+            'token': jwtToken,
+            'authToken': authToken
         });
     }
 
@@ -42,9 +43,10 @@ class RustCompanionManager {
             PushToken: data.expoPushToken,
         }).then((response) => {
             const jwtToken = response.data.token;
+            const authToken = data.token
 
             /* Success */
-            this.onRegisterSuccess(event, jwtToken);
+            this.onRegisterSuccess(event, jwtToken, authToken);
         }).catch((error) => {
             /* Get response status code */
             var responseCode = error.response ? error.response.status : 0;
