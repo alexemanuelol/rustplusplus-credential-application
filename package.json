@@ -1,7 +1,7 @@
 {
     "name": "rustplusplus-credential-application",
     "description": "rustplusplus credentials application",
-    "version": "1.2.0",
+    "version": "1.3.0",
     "author": "alexemanuelol",
     "private": true,
     "main": "background.js",
