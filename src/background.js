@@ -1,19 +1,3 @@
-/**
- * Define the btoa function in the Node.js environment.
- * 
- * In browser environments, the btoa function is provided by default,
- * but it is not available in Node.js environments. The btoa function
- * is used to encode a string in Base64.
- * 
- * To provide the same functionality in the Node.js environment, we use
- * the Buffer module to define the btoa function. This defined btoa function
- * can be used globally in the Node.js environment.
- * 
- * This is specifically required by the push-receiver-v2 library, which
- * relies on the btoa function for Base64 encoding.
- */
-global.btoa = (str) => Buffer.from(str, 'binary').toString('base64');
-
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
 const Electron = require('electron');
 const ElectronStore = require('electron-store');

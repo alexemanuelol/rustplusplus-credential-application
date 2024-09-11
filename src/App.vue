@@ -62,264 +62,240 @@
 </template>
 
 <script>
-    import LogoutModal from "@/components/modals/LogoutModal";
-    import ConnectRustPlus from '@/components/ConnectRustPlus.vue'
-    import { jwtDecode } from 'jwt-decode';
+import LogoutModal from "@/components/modals/LogoutModal";
+import ConnectRustPlus from '@/components/ConnectRustPlus.vue'
+import { jwtDecode } from 'jwt-decode';
 
-    export default {
-        name: 'App',
-        components: {
-            LogoutModal,
-            ConnectRustPlus,
+export default {
+    name: 'App',
+    components: {
+        LogoutModal,
+        ConnectRustPlus,
+    },
+    data: function () {
+        return {
+            appversion: window.appversion,
+
+            slashCommand: null,
+
+            steamId: null,
+            rustplusToken: null,
+
+            expireDate: null,
+            issuedDate: null,
+
+            fcmNotificationReceiver: null,
+            expoPushTokenReceiver: null,
+            rustCompanionReceiver: null,
+
+            isShowingLogoutModal: false,
+            isLoading: false,
+            saveNextData: false,
+        };
+    },
+    computed: {
+        isRustPlusConnected: function () {
+            return this.steamId && this.rustplusToken;
+        }
+    },
+    mounted() {
+        /* Load rust+ info from store */
+        this.steamId = window.DataStore.Config.getSteamId();
+        this.rustplusToken = window.DataStore.Config.getRustPlusToken();
+        this.expireDate = window.DataStore.Config.getExpireDate();
+        this.issuedDate = window.DataStore.Config.getIssuedDate();
+
+        /* Setup fcm, expo and rust companion receivers */
+        this.fcmNotificationReceiver = new window.FCMNotificationReceiver(window.ipcRenderer);
+        this.expoPushTokenReceiver = new window.ExpoPushTokenReceiver(window.ipcRenderer);
+        this.rustCompanionReceiver = new window.RustCompanionReceiver(window.ipcRenderer);
+
+        /* Setup fcm listeners */
+        this.fcmNotificationReceiver.on('register.success', this.onFCMRegisterSuccess);
+        this.fcmNotificationReceiver.on('register.error', this.onFCMRegisterError);
+
+        /* Setup expo listeners */
+        this.expoPushTokenReceiver.on('register.success', this.onExpoRegisterSuccess);
+        this.expoPushTokenReceiver.on('register.error', this.onExpoRegisterError);
+
+        /* Setup rust companion listeners */
+        this.rustCompanionReceiver.on('register.success', this.onRustCompanionRegisterSuccess);
+        this.rustCompanionReceiver.on('register.error', this.onRustCompanionRegisterError);
+
+        /* Setup credentials */
+        this.setupCredentials();
+    },
+    methods: {
+        onFCMRegisterSuccess(data) {
+            this.saveNextData = true;
+
+            /* Update slashCommand variable */
+            this.slashCommand = this.formatSlashCommand(data.credentials);
+
+            /* Save fcm credentials to store */
+            window.DataStore.FCM.setCredentials(data.credentials);
+
+            /* Configure expo data */
+            this.setupExpo();
         },
-        data: function () {
-            return {
-                appversion: window.appversion,
 
-                slashCommand: null,
-
-                steamId: null,
-                rustplusToken: null,
-
-                expireDate: null,
-                issuedDate: null,
-                authToken: null,
-
-                fcmNotificationReceiver: null,
-                expoPushTokenReceiver: null,
-                rustCompanionReceiver: null,
-
-                isShowingLogoutModal: false,
-                isLoading: false,
-                saveNextData: false,
-            };
+        onFCMRegisterError(data) {
+            /* Do nothing */
+            this.isLoading = false;
         },
-        computed: {
-            isRustPlusConnected: function () {
-                return this.steamId && this.rustplusToken;
+
+        onExpoRegisterSuccess(data) {
+            /* Register with rust companion api if logged into steam */
+            if (this.isRustPlusConnected) {
+                /**
+                 * The Rust Companion API will update the expo token if an existing registration exists for a deviceId.
+                 * Rust+ uses the device name as the deviceId, so if a user has two devices with same name, it won't
+                 * work. So, we will use a unique deviceId per installation so notifications will work across multiple
+                 * installs.
+                 */
+                let expoDeviceId = window.DataStore.Config.getExpoDeviceId();
+                let deviceId = 'rustplusplus-credential-application:' + expoDeviceId;
+                let rustplusToken = window.DataStore.Config.getRustPlusToken();
+
+                this.rustCompanionReceiver.register(deviceId, rustplusToken, data.expoPushToken);
             }
         },
-        mounted() {
-            /* Load rust+ info from store */
-            this.steamId = window.DataStore.Config.getSteamId();
-            this.rustplusToken = window.DataStore.Config.getRustPlusToken();
-            this.expireDate = window.DataStore.Config.getExpireDate();
-            this.issuedDate = window.DataStore.Config.getIssuedDate();
-            this.authToken = window.DataStore.Config.getAuthToken();
 
-            /* Setup fcm, expo and rust companion receivers */
-            this.fcmNotificationReceiver = new window.FCMNotificationReceiver(window.ipcRenderer);
-            this.expoPushTokenReceiver = new window.ExpoPushTokenReceiver(window.ipcRenderer);
-            this.rustCompanionReceiver = new window.RustCompanionReceiver(window.ipcRenderer);
+        onExpoRegisterError(data) {
+            /* Do nothing */
+        },
 
-            /* Setup fcm listeners */
-            this.fcmNotificationReceiver.on('register.success', this.onFCMRegisterSuccess);
-            this.fcmNotificationReceiver.on('register.error', this.onFCMRegisterError);
+        onRustCompanionRegisterSuccess(data) {
+            if (this.saveNextData) {
+                const decoded = jwtDecode(data.token, { header: true });
 
-            /* Setup expo listeners */
-            this.expoPushTokenReceiver.on('register.success', this.onExpoRegisterSuccess);
-            this.expoPushTokenReceiver.on('register.error', this.onExpoRegisterError);
+                window.DataStore.Config.setIssuedDate(decoded.iss);
+                window.DataStore.Config.setExpireDate(decoded.exp);
 
-            /* Setup rust companion listeners */
-            this.rustCompanionReceiver.on('register.success', this.onRustCompanionRegisterSuccess);
-            this.rustCompanionReceiver.on('register.error', this.onRustCompanionRegisterError);
+                this.issuedDate = decoded.iss;
+                this.expireDate = decoded.exp;
+
+                this.saveNextData = false;
+            }
+            else {
+                this.issuedDate = window.DataStore.Config.getIssuedDate();
+                this.expireDate = window.DataStore.Config.getExpireDate();
+            }
+
+            const credentials = window.DataStore.FCM.getCredentials();
+            this.slashCommand = this.formatSlashCommand(credentials);
+            this.isLoading = false;
+        },
+
+        onRustCompanionRegisterError(data) {
+            /* Check if rustplus token needs to be refreshed */
+            if (data.response_code === 403) {
+                /* Remove cached rustplus token */
+                window.DataStore.Config.clearRustPlusToken();
+
+                /* Tell user their rustplus token has expired */
+                alert("Your RustPlus token has expired. Please connect with RustPlus again.");
+
+                /* Reload window */
+                window.location.reload();
+            }
+        },
+
+        setupCredentials() {
+            /* Check for existing fcm credentials */
+            const credentials = window.DataStore.FCM.getCredentials();
+            if (credentials) {
+                /* Populate slashCommand with the Discord Slash Command */
+                this.slashCommand = this.formatSlashCommand(credentials);
+
+                /* Clear saved persistent ids */
+                window.DataStore.FCM.clearPersistentIds();
+
+                /* Configure expo data */
+                this.setupExpo();
+            } else {
+                /* Register for a new set of fcm credentials */
+                this.isLoading = true;
+                this.fcmNotificationReceiver.register();
+            }
+        },
+
+        setupExpo() {
+            let deviceId = window.DataStore.Config.getExpoDeviceId();
+            let projectId = '49451aca-a822-41e6-ad59-955718d0ff9c';
+            let appId = 'com.facepunch.rust.companion';
+            let fcmToken = window.DataStore.FCM.getCredentials().fcm.token;
+
+            this.expoPushTokenReceiver.register(deviceId, projectId, appId, fcmToken);
+        },
+
+        logout() {
+            /* Close logout modal */
+            this.isShowingLogoutModal = false;
+            this.saveNextData = true;
+
+            /* Forget steam account */
+            window.DataStore.Config.clearSteamId();
+            window.DataStore.Config.clearRustPlusToken();
+            window.DataStore.Config.clearExpireDate();
+            window.DataStore.Config.clearIssuedDate();
+
+            /* Clear in memory state, which will force user to connect steam */
+            this.steamId = null;
+            this.rustplusToken = null;
+            this.expireDate = null;
+            this.issuedDate = null;
+
+            /* Clear FCM Credentials */
+            window.DataStore.FCM.clearCredentials();
+            this.slashCommand = null;
+        },
+
+        onRustPlusConnected(event) {
+            /* Save rust+ info to store */
+            window.DataStore.Config.setSteamId(event.steamId);
+            window.DataStore.Config.setRustPlusToken(event.token);
+
+            /* Update steam id and token in memory */
+            this.steamId = event.steamId;
+            this.rustplusToken = event.token;
 
             /* Setup credentials */
             this.setupCredentials();
         },
-        methods: {
-            onFCMRegisterSuccess(data) {
-                this.saveNextData = true;
 
-                /* Update slashCommand variable */
-                this.slashCommand = this.formatSlashCommand(data.credentials);
+        formatSlashCommand(credentials) {
+            if (!credentials) return false;
 
-                /* Save fcm credentials to store */
-                window.DataStore.FCM.setCredentials(data.credentials);
+            const androidId = credentials.gcm.androidId;
+            const securityToken = credentials.gcm.securityToken;
+            this.issuedDate = window.DataStore.Config.getIssuedDate();
+            this.expireDate = window.DataStore.Config.getExpireDate();
 
-                /* Configure expo data */
-                this.setupExpo();
-            },
+            return '/credentials add ' +
+                `gcm_android_id:${androidId} ` +
+                `gcm_security_token:${securityToken} ` +
+                `steam_id:${this.steamId} ` +
+                `issued_date:${this.issuedDate} ` +
+                `expire_date:${this.expireDate}`;
+        },
 
-            onFCMRegisterError(data) {
-                /* Do nothing */
-                this.isLoading = false;
-            },
-
-            onExpoRegisterSuccess(data) {
-                /* Register with rust companion api if logged into steam */
-                if (this.isRustPlusConnected) {
-                    /**
-                     * The Rust Companion API will update the expo token if an existing registration exists for a deviceId.
-                     * Rust+ uses the device name as the deviceId, so if a user has two devices with same name, it won't
-                     * work. So, we will use a unique deviceId per installation so notifications will work across multiple
-                     * installs.
-                     */
-                    let expoDeviceId = window.DataStore.Config.getExpoDeviceId();
-                    let deviceId = 'rustplusplus-credential-application:' + expoDeviceId;
-                    let rustplusToken = window.DataStore.Config.getRustPlusToken();
-
-                    this.rustCompanionReceiver.register(deviceId, rustplusToken, data.expoPushToken);
-                }
-            },
-
-            onExpoRegisterError(data) {
-                /* Do nothing */
-            },
-
-            onRustCompanionRegisterSuccess(data) {
-                window.DataStore.Config.setAuthToken(data.authToken);
-                this.authToken = data.authToken;
-
-                if (this.saveNextData) {
-                    const decoded = jwtDecode(data.token, { header: true });
-
-                    window.DataStore.Config.setIssuedDate(decoded.iss);
-                    window.DataStore.Config.setExpireDate(decoded.exp);
-                    window.DataStore.Config.setAuthToken(data.authToken);
-
-                    this.issuedDate = decoded.iss;
-                    this.expireDate = decoded.exp;
-                    this.authToken = data.authToken;
-
-                    this.saveNextData = false;
-                }
-                else {
-                    this.issuedDate = window.DataStore.Config.getIssuedDate();
-                    this.expireDate = window.DataStore.Config.getExpireDate();
-                    this.authToken = window.DataStore.Config.getAuthToken();
-                }
-
-                let credentials = window.DataStore.FCM.getCredentials();
-                this.slashCommand = this.formatSlashCommand(credentials);
-                this.isLoading = false;
-            },
-
-            onRustCompanionRegisterError(data) {
-                /* Check if rustplus token needs to be refreshed */
-                if (data.response_code === 403) {
-                    /* Remove cached rustplus token */
-                    window.DataStore.Config.clearRustPlusToken();
-
-                    /* Tell user their rustplus token has expired */
-                    alert("Your RustPlus token has expired. Please connect with RustPlus again.");
-
-                    /* Reload window */
-                    window.location.reload();
-                }
-            },
-
-            setupCredentials() {
-                /* Check for existing fcm credentials */
-                let credentials = window.DataStore.FCM.getCredentials();
-                if (credentials) {
-                    /* Populate slashCommand with the Discord Slash Command */
-                    this.slashCommand = this.formatSlashCommand(credentials);
-
-                    /* Clear saved persistent ids */
-                    window.DataStore.FCM.clearPersistentIds();
-
-                    /* Configure expo data */
-                    this.setupExpo();
-                } else {
-                    /* Register for a new set of fcm credentials */
-                    this.isLoading = true;
-                    this.fcmNotificationReceiver.register();
-                }
-            },
-
-            setupExpo() {
-                var deviceId = window.DataStore.Config.getExpoDeviceId();
-                var experienceId = '@facepunch/RustCompanion';
-                var appId = 'com.facepunch.rust.companion';
-                var fcmToken = window.DataStore.FCM.getCredentials().fcm.token;
-
-                this.expoPushTokenReceiver.register(deviceId, experienceId, appId, fcmToken);
-            },
-
-            logout() {
-                /* Close logout modal */
-                this.isShowingLogoutModal = false;
-                this.saveNextData = true;
-
-                /* Forget steam account */
-                window.DataStore.Config.clearSteamId();
-                window.DataStore.Config.clearRustPlusToken();
-                window.DataStore.Config.clearExpireDate();
-                window.DataStore.Config.clearIssuedDate();
-
-                /* Clear in memory state, which will force user to connect steam */
-                this.steamId = null;
-                this.rustplusToken = null;
-                this.expireDate = null;
-                this.issuedDate = null;
-                this.authToken = null;
-
-                /* Clear FCM Credentials */
-                window.DataStore.FCM.clearCredentials();
-                this.slashCommand = null;
-            },
-
-            onRustPlusConnected(event) {
-                /* Save rust+ info to store */
-                window.DataStore.Config.setSteamId(event.steamId);
-                window.DataStore.Config.setRustPlusToken(event.token);
-
-                /* Update steam id and token in memory */
-                this.steamId = event.steamId;
-                this.rustplusToken = event.token;
-
-                /* Setup credentials */
-                this.setupCredentials();
-            },
-
-            formatSlashCommand(credentials) {
-                if (!credentials) return false;
-
-                const issuedDate = window.DataStore.Config.getIssuedDate();
-                const expireDate = window.DataStore.Config.getExpireDate();
-                const authToken = window.DataStore.Config.getAuthToken();
-
-                return '/authtoken add ' +
-                    `token:${authToken} ` +
-                    `steam_id:${this.steamId} ` +
-                    `issued_date:${issuedDate} ` +
-                    `expire_date:${expireDate}`;
-
-                //return '/credentials add ' +
-                //    `keys_private_key:${credentials.keys.privateKey} ` +
-                //    `keys_public_key:${credentials.keys.publicKey} ` +
-                //    `keys_auth_secret:${credentials.keys.authSecret} ` +
-                //    `fcm_name:${credentials.fcm.name} ` +
-                //    `fcm_token:${credentials.fcm.token} ` +
-                //    `fcm_web_endpoint:${credentials.fcm.web.endpoint} ` +
-                //    `fcm_web_p256dh:${credentials.fcm.web.p256dh} ` +
-                //    `fcm_web_auth:${credentials.fcm.web.auth} ` +
-                //    `gcm_token:${credentials.gcm.token} ` +
-                //    `gcm_android_id:${credentials.gcm.androidId} ` +
-                //    `gcm_security_token:${credentials.gcm.securityToken} ` +
-                //    `gcm_app_id:${credentials.gcm.appId} ` +
-                //    `steam_id:${this.steamId} ` +
-                //    `issued_date:${issuedDate} ` +
-                //    `expire_date:${expireDate}`;
-            },
-
-            copySlashCommand() {
-                this.$refs.textareaCopy.focus();
-                document.execCommand('copy');
-            }
+        copySlashCommand() {
+            this.$refs.textareaCopy.focus();
+            document.execCommand('copy');
         }
     }
+}
 </script>
 
 <style>
-    @keyframes spin {
-        to {
-            transform: rotate(360deg);
-        }
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
     }
+}
 
-    .animate-spin {
-        animation: spin 1s linear infinite;
-    }
+.animate-spin {
+    animation: spin 1s linear infinite;
+}
 </style>

@@ -1,4 +1,4 @@
-const Events = require('events');
+const { EventEmitter } = require('events');
 
 /**
  * This class is responsible for communicating with the ExpoPushTokenManager running
@@ -7,7 +7,7 @@ const Events = require('events');
  * Events are sent from here in the renderer process via ipc to the main process,
  * and results are then sent back to the renderer process via ipc.
  */
-class ExpoPushTokenReceiver extends Events.EventEmitter {
+class ExpoPushTokenReceiver extends EventEmitter {
     constructor(ipcRenderer) {
         super();
 
@@ -34,14 +34,14 @@ class ExpoPushTokenReceiver extends Events.EventEmitter {
      * - register.success
      * - register.error
      */
-    register(deviceId, experienceId, appId, fcmToken) {
+    register(deviceId, projectId, appId, fcmToken) {
         ipcRenderer.send('expo-push-token.register', {
+            type: 'fcm',
             deviceId: deviceId,
-            experienceId: experienceId,
+            development: false,
             appId: appId,
             deviceToken: fcmToken,
-            type: 'fcm',
-            development: false,
+            projectId: projectId
         });
     }
 }

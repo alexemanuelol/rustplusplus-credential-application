@@ -5,7 +5,7 @@
                 <div class="max-w-md mx-auto">
 
                     <div class="flex mb-4">
-                        <img class="mx-auto" src="rustplusplus.png"/>
+                        <img class="mx-auto" src="rustplusplus.png" />
                     </div>
 
                     <div class="flex flex-col">
@@ -14,11 +14,12 @@
 
                     <div class="divide-y divide-gray-200">
                         <div class="py-8 text-base leading-6 space-y-4 text-gray-700 sm:text-lg sm:leading-7">
-                            <p>Get your credentials by connecting with Rust+</p>
+                            <p>Get your credentials by connecting with the Rust+ Companion API.</p>
                         </div>
                     </div>
 
-                    <button @click="connectWithRustPlus" type="button" class="w-full inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none">
+                    <button @click="connectWithRustPlus" type="button"
+                        class="w-full inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none">
                         <span class="flex mx-auto">
                             <span>Connect with Rust+</span>
                         </span>
@@ -43,7 +44,7 @@ export default {
         });
     },
     methods: {
-        connectWithRustPlus: function() {
+        connectWithRustPlus: function () {
             window.ipcRenderer.send('connect-with-rustplus');
         },
 

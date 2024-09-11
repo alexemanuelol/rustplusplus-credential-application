@@ -1,5 +1,4 @@
-const PushReceiver = require('push-receiver-v2');
-require('dotenv').config();
+const { AndroidFCM, Client: PushReceiverClient } = require('@liamcottle/push-receiver');
 
 /**
  * This class is responsible for registering a new android device with fcm
@@ -12,19 +11,10 @@ class FCMNotificationManager {
     constructor(ipcMain) {
         /* Global variables */
         this.ipcMain = ipcMain;
-        /**
-         * Firebase configuration used to register the device with FCM.
-         * This configuration includes the API key, app ID, and project ID.
-         */
-        this.config = {
-            firebase: {
-                apiKey: process.env.FIREBASE_API_KEY,
-                appID: process.env.FIREBASE_APP_ID,
-                projectID: process.env.FIREBASE_PROJECT_ID
-            }
-        }
-        /* Register IPC channel handlers */
-        ipcMain.on('push-receiver.register', (event) => this.onRegister(event));
+        this.notificationClient = null;
+
+        /* Register ipc channel handlers */
+        ipcMain.on('push-receiver.register', (event, data) => this.onRegister(event, data));
     }
 
     onRegisterSuccess(event, credentials) {
@@ -40,14 +30,15 @@ class FCMNotificationManager {
     }
 
     /**
-     * Register with FCM to obtain credentials
+     * Register with FCM to obtain credentials.
      * @param event
      * @param data
      */
     async onRegister(event, data) {
         try {
             /* Register with gcm/fcm */
-            const credentials = await PushReceiver.register(this.config);
+            const credentials = await AndroidFCM.register(data.apiKey, data.projectId, data.gcmSenderId, data.gmsAppId,
+                data.androidPackageName, data.androidPackageCert);
 
             /* Registering was successful */
             this.onRegisterSuccess(event, credentials);

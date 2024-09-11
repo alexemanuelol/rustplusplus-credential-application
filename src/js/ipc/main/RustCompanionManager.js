@@ -15,10 +15,9 @@ class RustCompanionManager {
         ipcMain.on('rust-companion-api.register', (event, data) => this.onRegister(event, data));
     }
 
-    onRegisterSuccess(event, jwtToken, authToken) {
+    onRegisterSuccess(event, jwtToken) {
         event.sender.send('rust-companion-api.register.success', {
-            'token': jwtToken,
-            'authToken': authToken
+            'token': jwtToken
         });
     }
 
@@ -39,14 +38,13 @@ class RustCompanionManager {
         Axios.post('https://companion-rust.facepunch.com:443/api/push/register', {
             AuthToken: data.token,
             DeviceId: data.deviceId,
-            PushKind: 0,
+            PushKind: 3,
             PushToken: data.expoPushToken,
         }).then((response) => {
             const jwtToken = response.data.token;
-            const authToken = data.token
 
             /* Success */
-            this.onRegisterSuccess(event, jwtToken, authToken);
+            this.onRegisterSuccess(event, jwtToken);
         }).catch((error) => {
             /* Get response status code */
             var responseCode = error.response ? error.response.status : 0;

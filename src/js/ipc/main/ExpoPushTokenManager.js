@@ -1,6 +1,5 @@
 const Axios = require('axios');
 const Https = require('https');
-const { v4: uuidv4 } = require('uuid');
 
 /**
  * This class is responsible for obtaining an Expo Push Token.
@@ -37,12 +36,12 @@ class ExpoPushTokenManager {
     async onRegister(event, data) {
         /* Register with expo */
         Axios.post('https://exp.host/--/api/v2/push/getExpoPushToken', {
-            deviceId: uuidv4(),
-            experienceId: data.experienceId,
+            type: data.type,
+            deviceId: data.deviceId,
+            development: data.development,
             appId: data.appId,
             deviceToken: data.deviceToken,
-            type: data.type,
-            development: data.development,
+            projectId: data.projectId
         }, {
             /**
              * todo: this is insecure and should not be used, but electron v11 is not going to backport the fix

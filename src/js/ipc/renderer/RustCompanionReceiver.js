@@ -1,4 +1,4 @@
-const Events = require('events');
+const { EventEmitter } = require('events');
 
 /**
  * This class is responsible for communicating with the RustCompanionManager running
@@ -7,7 +7,7 @@ const Events = require('events');
  * Events are sent from here in the renderer process via ipc to the main process,
  * and results are then sent back to the renderer process via ipc.
  */
-class RustCompanionReceiver extends Events.EventEmitter {
+class RustCompanionReceiver extends EventEmitter {
     constructor(ipcRenderer) {
         super();
 

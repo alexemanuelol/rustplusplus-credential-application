@@ -25,7 +25,7 @@ class FCMDataStore {
     }
 
     static addPersistentId(persistentId) {
-        var persistentIds = this.getPersistentIds();
+        let persistentIds = this.getPersistentIds();
 
         if (!persistentIds.includes(persistentId)) {
             persistentIds.push(persistentId);

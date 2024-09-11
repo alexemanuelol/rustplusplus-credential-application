@@ -1,4 +1,4 @@
-const Events = require('events');
+const { EventEmitter } = require('events');
 
 /**
  * This class is responsible for communicating with the FCMNotificationManager running
@@ -7,7 +7,7 @@ const Events = require('events');
  * Events are sent from here in the renderer process via ipc to the main process,
  * and results are then sent back to the renderer process via ipc.
  */
-class FCMNotificationReceiver extends Events.EventEmitter {
+class FCMNotificationReceiver extends EventEmitter {
     constructor(ipcRenderer) {
         super();
 
@@ -28,20 +28,21 @@ class FCMNotificationReceiver extends Events.EventEmitter {
     }
 
     /**
-     * Ask the main process to register a new Android device
-     * to receive FCM notifications using the provided Firebase configuration.
-     *
-     * This function sends an 'push-receiver.register' event to the main process.
-     *
-     * The main process should handle this event and use the Firebase configuration
-     * to register the device for FCM notifications.
+     * Ask the main process to register a new android device to receive fcm notifications.
      *
      * Events Emitted:
-     * - 'push-receiver.register.success': Emitted by the main process when registration is successful.
-     * - 'push-receiver.register.error': Emitted by the main process when registration fails.
+     * - register.success
+     * - register.error
      */
     register() {
-        ipcRenderer.send('push-receiver.register');
+        ipcRenderer.send('push-receiver.register', {
+            apiKey: "AIzaSyB5y2y-Tzqb4-I4Qnlsh_9naYv_TD8pCvY",
+            projectId: "rust-companion-app",
+            gcmSenderId: "976529667804",
+            gmsAppId: "1:976529667804:android:d6f1ddeb4403b338fea619",
+            androidPackageName: "com.facepunch.rust.companion",
+            androidPackageCert: "E28D05345FB78A7A1A63D70F4A302DBF426CA5AD",
+        });
     }
 }
 

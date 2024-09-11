@@ -25,7 +25,7 @@ window.DataStore = {
 window.ReactNativeWebView = {
     postMessage: function (message) {
         /* Parse auth data, converting BigInteger steam id to string */
-        var auth = JSONbig.parse(message);
+        const auth = JSONbig.parse(message);
 
         /* Send auth data back to background.js */
         window.ipcRenderer.send('connect-with-rustplus.react-native-callback', {

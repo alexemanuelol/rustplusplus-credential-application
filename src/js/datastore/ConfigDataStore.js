@@ -6,7 +6,6 @@ const KEY_RUSTPLUS_TOKEN = 'rustplus_token';
 const KEY_EXPO_DEVICE_ID = 'expo_device_id';
 const KEY_EXPIRE_DATE = 'expire_date';
 const KEY_ISSUED_DATE = 'issued_date';
-const KEY_AUTH_TOKEN = 'auth_token';
 
 class ConfigDataStore {
     static getSteamId() {
@@ -75,18 +74,6 @@ class ConfigDataStore {
 
     static clearIssuedDate() {
         return ElectronStore.delete(KEY_ISSUED_DATE);
-    }
-
-    static getAuthToken() {
-        return ElectronStore.get(KEY_AUTH_TOKEN);
-    }
-
-    static setAuthToken(authToken) {
-        return ElectronStore.set(KEY_AUTH_TOKEN, authToken);
-    }
-
-    static clearAuthToken() {
-        return ElectronStore.delete(KEY_AUTH_TOKEN);
     }
 }
 
